@@ -6,10 +6,10 @@ const fs = require('node:fs')
 
 const prepareSvgFile = (svg) => {
 	return svg
-			.replace(/\n/g, '')
-			.replace(/>\s+</g, '><')
-			.replace(/<path stroke="none" d="M0 0h24v24H0z" fill="none"\s?\/>/, '')
-			;
+		.replace(/\n/g, '')
+		.replace(/>\s+</g, '><')
+		.replace(/<path stroke="none" d="M0 0h24v24H0z" fill="none"\s?\/>/, '')
+		;
 }
 
 const iconsPkg = require('./node_modules/@tabler/icons/package.json')
@@ -25,14 +25,17 @@ const generateIconsJSON = (jsonFile, filename) => {
 
 	for (let iconName in files) {
 		let iconData = files[iconName]
-
-		svgList.push({
-			name: iconName,
-			// version: iconData.version,
-			category: iconData.category,
-			tags: iconData.tags,
-			// unicode: iconData.unicode,
-			svg: prepareSvgFile(fs.readFileSync(`./node_modules/@tabler/icons/icons/${iconName}.svg`).toString())
+		Object.keys(iconData.styles).forEach(style => {
+			let name = iconName;
+			if (iconData.styles.filled) {
+				name += `_${style}`
+			} 
+			svgList.push({
+				name: name,
+				category: iconData.category,
+				tags: iconData.tags?.filter(x => x).map(x => x.toString()) || [],
+				svg: prepareSvgFile(fs.readFileSync(`./node_modules/@tabler/icons/icons/${style}/${iconName}.svg`).toString())
+			})
 		})
 	}
 
@@ -42,4 +45,4 @@ const generateIconsJSON = (jsonFile, filename) => {
 	fs.writeFileSync(filename, JSON.stringify(svgData))
 }
 
-generateIconsJSON('./node_modules/@tabler/icons/tags.json', `./src/icons.json`)
+generateIconsJSON('./node_modules/@tabler/icons/icons.json', `./src/icons.json`)
